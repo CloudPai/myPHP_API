@@ -5,7 +5,7 @@
  * Date: 2017/7/30
  * Time: 下午12:43
  */
-require __DIR__.'/ErrorCode.php';
+require_once __DIR__.'/ErrorCode.php';
 
 class User
 {
@@ -85,20 +85,20 @@ class User
             throw new Exception('用户名已存在',ErrorCode::USERNAME_EXITS);
         }
         //写入数据库
-        $sql = 'INSERT INTO `user`(`username`,`password`,`created_at`)VALUES (:username,:password,:created_at)';
-        $created_at = time();
+        $sql = 'INSERT INTO `user`(`username`,`password`,`createdAt`)VALUES (:username,:password,:createdAt)';
+        $createdAt = time();
         $password = $this->_md5($password);
         $stmt = $this ->_db->prepare($sql);
         $stmt ->bindParam(':username',$username);
         $stmt ->bindParam(':password',$password);
-        $stmt ->bindParam(':created_at',$created_at);
+        $stmt ->bindParam(':createdAt',$createdAt);
         if(!$stmt->execute()){
             throw new Exception('注册失败',ErrorCode::REGISTER_FAIL);
         }
         return [
             'userId' => $this -> _db ->lastInsertId(),
             'username' =>$username,
-            'created_at'=>$created_at,
+            'createdAt'=>$createdAt,
 
         ];
 

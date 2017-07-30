@@ -5,3 +5,159 @@
  * Date: 2017/7/30
  * Time: 下午12:44
  */
+require_once __DIR__ .'/ErrorCode.php';
+
+class Article
+{
+
+    /**
+     * 数据库句柄
+     * @var
+     */
+    private $_db ;
+
+    /**
+     * 构造方法
+     * Article constructor.
+     * @param PDO $_db 数据库连接句柄
+     */
+    public function __construct($_db)
+    {
+        $this->_db = $_db;
+    }
+
+
+    /**
+     * 创建文章
+     * @param $title
+     * @param $content
+     * @param $userId
+     * @return array
+     * @throws Exception
+     */
+    public function create($title,$content,$userId)
+    {
+        if(empty($title)){
+            throw new Exception('文章标题不能为空',ErrorCode::ARTICLE_TITLE_CANNOT_EMPTY);
+        }
+        if(empty($content)){
+            throw new Exception('文章内容不能为空',ErrorCode::ARTICLE_CONTENT_CANNOT_EMPTY);
+        }
+        $sql = 'INSERT INTO `article`(`title`,`content`,`userId`,`createdAt`)VALUES (:title,:content,:userId,:createdAt)';
+        $createdAt = time();
+        $stmt = $this->_db->prepare($sql);
+        $stmt->bindParam('title',$title);
+        $stmt->bindParam('content',$content);
+        $stmt->bindParam('userId',$userId);
+        $stmt->bindParam('createdAt',$createdAt);
+        if(!$stmt -> execute()){
+            throw new Exception('发表文章失败',ErrorCode::ARTICLE_CREATE_FAIL);
+        }
+        return [
+            'articleId' => $this ->_db->lastInsertId(),
+            'title' =>$title,
+            'content' =>$userId,
+            'createdAt'=>$createdAt,
+
+        ];
+    }
+
+    /**
+     * 查看一篇文章
+     * @param $articleId
+     * @return mixed
+     * @throws Exception
+     */
+
+    public function view($articleId)
+    {
+
+
+        if (empty($articleId))
+        {
+            throw new MyHttpException( '文章ID不能为空',ErrorCode::ARTICLE_ID_CANNOT_EMPTY);
+        }
+        $sql = 'SELECT * FROM `article` WHERE `articleId`=:id';
+        $stmt = $this->_db->prepare($sql);
+        $stmt->bindParam(':id', $articleId);
+        $stmt->execute();
+        $article = $stmt ->fetch(PDO::FETCH_ASSOC);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        if(empty($article)){
+
+            throw new Exception('文章不存在',ErrorCode::ARTICLE_NOT_FOUND);
+        }
+        return $article;
+
+    }
+
+
+    /**
+     * 编辑文章
+     * @param $articleId
+     * @param $title
+     * @param $content
+     * @param $userId
+     * @return array|mixed
+     * @throws Exception
+     */
+    public function edit($articleId,$title,$content,$userId)
+    {
+        $article = $this->view($articleId);
+//        var_dump($article['userId'],$userId);exit();
+        if($article['userId']!== $userId){
+            throw new Exception('您无权编辑该文章', ErrorCode::PERMISSION_DENIED);
+        }
+        $title = empty($title) ? $article['title'] :$title;
+        $content = empty($content) ? $article['content'] :$content;
+        if($title === $article['title']&& $content ===$article['content']){
+            return $article;
+        }
+        $sql ='UPDATE `article` SET `title`=:title,`content`=:content WHERE `articleId`=:id';
+        $stmt = $this ->_db->prepare($sql);
+        $stmt ->bindParam(':title',$title);
+        $stmt ->bindParam(':content',$content);
+        $stmt ->bindParam(':id',$articleId);
+        if(!$stmt->execute()){
+            throw new Exception('文章编辑失败',ErrorCode::ARTICLE_EDIT_FAIL);
+        }
+        return [
+            'articleId' => $articleId,
+            'title' =>$title,
+            'content'=>$content,
+            'createdAt'=>$article['createdAt']
+
+
+        ];
+
+    }
+
+    /**
+     * 删除文章
+     * @param $articleId
+     * @param $userId
+     */
+    public function delete($articleId,$userId)
+    {
+
+
+
+    }
+
+    /**
+     * 读取文章列表
+     * @param $userId
+     * @param int $page
+     * @param int $size
+     */
+    public function getList($userId,$page=1,$size=10)
+    {
+
+
+
+    }
+
+
+
+
+}
