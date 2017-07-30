@@ -46,10 +46,10 @@ class Article
         $sql = 'INSERT INTO `article`(`title`,`content`,`userId`,`createdAt`)VALUES (:title,:content,:userId,:createdAt)';
         $createdAt = time();
         $stmt = $this->_db->prepare($sql);
-        $stmt->bindParam('title',$title);
-        $stmt->bindParam('content',$content);
-        $stmt->bindParam('userId',$userId);
-        $stmt->bindParam('createdAt',$createdAt);
+        $stmt->bindParam(':title',$title);
+        $stmt->bindParam(':content',$content);
+        $stmt->bindParam(':userId',$userId);
+        $stmt->bindParam( ':createdAt',$createdAt);
         if(!$stmt -> execute()){
             throw new Exception('发表文章失败',ErrorCode::ARTICLE_CREATE_FAIL);
         }
@@ -173,11 +173,12 @@ class Article
 
         $sql = 'SELECT * FROM `article` WHERE `userId`=:userId LIMIT :limit,:offset';
         $limit = ($page - 1) * $size;
-        $limit = $limit <0 ? 0: $limit;
+        $limit = $limit < 0 ? 0 : $limit;
         $stmt = $this -> _db->prepare($sql);
         $stmt ->bindParam(':userId',$userId);
         $stmt ->bindParam(':limit',$limit);
         $stmt ->bindParam(':offset',$size);
+        $stmt -> execute();
         $data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
         return $data;
     }
