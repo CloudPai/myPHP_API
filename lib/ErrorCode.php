@@ -20,4 +20,8 @@ class ErrorCode
     const ARTICLE_NOT_FOUND = 10;//文章不存在
     const PERMISSION_DENIED = 11;//您无权编辑该文章
     const ARTICLE_EDIT_FAIL = 12;//文章编辑失败
+    const ARTICLE_DELETE_FAIL = 13;//文章删除失败
+    const PAGE_SIZE_TOO_BIG = 14;//分页大小过大
+
+
 }

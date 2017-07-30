@@ -136,11 +136,23 @@ class Article
      * 删除文章
      * @param $articleId
      * @param $userId
+     * @return bool
+     * @throws Exception
      */
     public function delete($articleId,$userId)
     {
-
-
+        $article = $this -> view($articleId,$userId);
+        if($article['userId']!== $userId){
+            throw new Exception('您无权操作',ErrorCode::PERMISSION_DENIED);
+        }
+        $sql = 'DELETE FROM `article` WHERE `articleId` =:articleId AND `userId` =:userId';
+        $stmt = $this ->_db->prepare($sql);
+        $stmt ->bindParam('articleId',$articleId);
+        $stmt ->bindParam('userId',$userId);
+        if(!$stmt->execute()===false){
+            throw new Exception('删除失败',ErrorCode::ARTICLE_DELETE_FAIL);
+        }
+        return true;
 
     }
 
@@ -149,12 +161,25 @@ class Article
      * @param $userId
      * @param int $page
      * @param int $size
+     * @return array
+     * @throws Exception
      */
     public function getList($userId,$page=1,$size=10)
     {
+        if($size >100){
+            throw new Exception('分页大小最大为100',ErrorCode::PAGE_SIZE_TOO_BIG);
+        }
 
 
-
+        $sql = 'SELECT * FROM `article` WHERE `userId`=:userId LIMIT :limit,:offset';
+        $limit = ($page - 1) * $size;
+        $limit = $limit <0 ? 0: $limit;
+        $stmt = $this -> _db->prepare($sql);
+        $stmt ->bindParam(':userId',$userId);
+        $stmt ->bindParam(':limit',$limit);
+        $stmt ->bindParam(':offset',$size);
+        $data = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+        return $data;
     }
 
 
